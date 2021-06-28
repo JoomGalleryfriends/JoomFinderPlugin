@@ -15,5 +15,7 @@
 	<languages>
 		<language tag="en-GB">language/en-GB/en-GB.plg_finder_joomgallery.ini</language>
 		<language tag="en-GB">language/en-GB/en-GB.plg_finder_joomgallery.sys.ini</language>
+		<language tag="de-DE">language/de-DE/de-DE.plg_finder_joomgallery.ini</language>
+		<language tag="de-DE">language/de-DE/de-DE.plg_finder_joomgallery.sys.ini</language>
 	</languages>
 </extension>

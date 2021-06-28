@@ -16,7 +16,7 @@
 
     <files>
        <file type="plugin" id="plg_finderjoomgallery" group="finder">plg_finderjoomgallery.zip</file>
-       <file type="plugin" id="plg_joomgalleryfinder" group="joomgallery">plg_joomgalleryfinde.zip</file>
+       <file type="plugin" id="plg_joomgalleryfinder" group="joomgallery">plg_joomgalleryfinder.zip</file>
     </files>
 
     <languages>

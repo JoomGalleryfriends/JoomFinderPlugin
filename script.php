@@ -54,11 +54,15 @@ class pkg_joomFinderPluginInstallerScript
     $install_message = $this->getInstallerMSG($act_version, $new_version, $method);
 
   	?>
-    <div class="alert alert-success">
+    <br />
+    <div class="hero-unit">
       <h3><?php echo Text::sprintf('PKG_JOOMFINDERPLUGIN_INSTALL_TXT', $parent->get('manifest')->version);?></h3>
-      <?php if ($install_message != '') : ?>
-        <div><?php echo $install_message;?></div>
-      <?php endif; ?>
+      <br />
+      <div class="alert alert-warning">
+        <?php if ($install_message != '') : ?>
+          <div><?php echo $install_message;?></div>
+        <?php endif; ?>
+      </div>
     </div>
     <?php
   }
@@ -91,8 +95,11 @@ class pkg_joomFinderPluginInstallerScript
     $update_message = $this->getInstallerMSG($act_version, $new_version, $method);
 
     ?>
-      <div class="alert alert-success">
-        <h3><?php echo Text::sprintf('PKG_JOOMFINDERPLUGIN_UPDATE_TXT', $parent->get('manifest')->version);?></h3>
+    <br />
+    <div class="hero-unit">
+      <h3><?php echo Text::sprintf('PKG_JOOMFINDERPLUGIN_UPDATE_TXT', $parent->get('manifest')->version);?></h3>
+      <br />
+      <div class="alert alert-warning">
         <?php if ($update_message != '') : ?>
           <div><?php echo $update_message;?></div>
         <?php endif; ?>
@@ -261,8 +268,8 @@ class pkg_joomFinderPluginInstallerScript
     // install of pre release version
     if (($new_version[0] == 0) && ($methode == 'update' || $methode == 'install'))
     {
-      $msg .= '<br /><h3>'.Text::_('PKG_JOOMFINDERPLUGIN_UPDATE_MESSAGE_TITLE_BETA').'</h3>';
-      $msg .= '<div style="font-size: initial; text-align: left;">'.Text::_('PKG_JOOMFINDERPLUGIN_UPDATE_MESSAGE_BETA').'</div>';
+      $msg .= '<h4 class="alert-heading">'.Text::_('PKG_JOOMFINDERPLUGIN_UPDATE_MESSAGE_TITLE_BETA').'</h3>';
+      $msg .= '<div class="alert-massage" style="font-size: small;">'.Text::_('PKG_JOOMFINDERPLUGIN_UPDATE_MESSAGE_BETA').'</div>';
     }
 
     return $msg;
