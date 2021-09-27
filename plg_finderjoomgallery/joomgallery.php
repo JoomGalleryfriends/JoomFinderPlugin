@@ -69,29 +69,6 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	protected $autoloadLanguage = true;
 
 	/**
-	 * Method to update the item link information when the item category is
-	 * changed. This is fired when the item category is published or unpublished
-	 * from the list view.
-	 * Event is triggered at the same time as the onCategoryChangeState event
-	 *
-	 * @param   string   $extension  The extension whose category has been updated.
-	 * @param   array    $pks        A list of primary key ids of the content that has changed state.
-	 * @param   integer  $value      The value of the state that the content has been changed to.
-	 *
-	 * @return  void
-	 *
-	 * @since   2.5
-	 */
-	public function onFinderCategoryChangeState($extension, $pks, $value)
-	{
-		// Make sure we're handling joomgallery categories.
-		if ($extension === 'com_joomgallery')
-		{
-			$this->categoryStateChange($pks, $value);
-		}
-	}
-
-	/**
 	 * Method to remove the link information for items that have been deleted.
 	 * Event is triggered at the same time as the onContentAfterDelete event
 	 *
@@ -223,7 +200,8 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @param   string   $context  The context for the content passed to the plugin.
 	 * @param   array    $pks      The joomgallery image object that has changed states.
-	 * @param   array    $value    ['publish']: The value of the state that is changed to. ['task']: The state that is chenged
+	 * @param   integer  $value    0: unpublished / 1: published / 2: archived / 3: not approved / 4: approved
+	 * 														 5: not featured / 6: featured
 	 *
 	 * @return  void
 	 *
@@ -231,8 +209,10 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 */
 	public function onFinderChangeState($context, $pks, $value)
 	{
-		// We only want to handle joomgallery images that get chnged in the publishing state here.
-		if ($context === 'com_joomgallery.image' && ($value['task'] === 'publish' || $value['task'] === 'approve'))
+		$value = intval($value);
+
+		// We only want to handle joomgallery images that get changed in the publishing state.
+		if ($context === 'com_joomgallery.image' && $value >= 0)
 		{
 			$this->itemStateChange($pks, $value);
 		}
@@ -241,6 +221,32 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		if ($context === 'com_plugins.plugin' && $value === 0)
 		{
 			$this->pluginDisable($pks);
+		}
+	}
+
+	/**
+	 * Method to update the item link information when the item category is
+	 * changed. This is fired when the item category is published or unpublished
+	 * from the list view.
+	 * Event is triggered at the same time as the onCategoryChangeState event
+	 *
+	 * @param   string   $extension  The extension whose category has been updated.
+	 * @param   array    $pks        A list of primary key ids of the content that has changed state.
+	 * @param   integer  $value      0: unpublished / 1: published / 2: archived / 3: not approved / 4: approved
+	 * 														   5: not featured / 6: featured
+	 *
+	 * @return  void
+	 *
+	 * @since   2.5
+	 */
+	public function onFinderCategoryChangeState($extension, $pks, $value)
+	{
+		$value = intval($value);
+
+		// We only want to handle joomgallery categories that get changed in the publishing state.
+		if ($extension === 'com_joomgallery.category' && $value >= 0)
+		{
+			$this->categoryStateChange($pks, $value);
 		}
 	}
 
@@ -388,7 +394,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		$query->select('a.hidden AS hidden, a.approved AS approved');
 
 		// Item and category published state
-		$query->select('a.published AS state, c.published AS cat_state');
+		$query->select('a.published AS published, c.published AS cat_state');
 
 		// Item and category access levels
 		$query->select('a.access, c.access AS cat_access')
@@ -449,39 +455,50 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	/**
 	 * Method to translate the native content states into states that the indexer can use.
 	 *
-	 * $item = array(state, hidden, approved)
-	 * state     (1: published / 0: upublished)
-	 * hidden    (0: visible / 1: hidden)
-	 * approved  (1: approved / -1: not approved)
-	 * category  (1: published / 0: upublished)
-	 *
-	 * @param   array    $item        The item state.
-	 * @param   integer  $category    The native category state. [optional]
+	 * @param   object   $item     The item to be changed.
+	 * @param   integer  $value    The value to change to.
 	 *
 	 * @return  integer  The translated indexer state.
 	 *
 	 * @since   2.5
 	 */
-	protected function translateState($item, $category = null)
+	protected function translateState($item, $value)
 	{
-		if ($item['state'] == 0 || $item['hidden'] != 0 || $item['approved'] != 1 || ($category != null && $category != 1))
+
+		// states before change
+		$published = $item->published;
+		$approved  = $item->approved;
+		$hidden    = $item->hidden;
+		$category  = $item->cat_date;
+
+		switch($value)
+		{
+			case 0:
+				$published = 0;
+				break;
+			case 1:
+				// break intensionally omitted
+			case 2:
+				$published = 1;
+				break;
+			case 3:
+				$approved = 0;
+				break;
+			case 4:
+				$approved = 1;
+				break;
+			default:
+				break;
+		}
+
+		if($published != 1 || $approved != 1 || $hidden != 0 || ($category != null && $category != 1))
 		{
 			// if one of these states are not set the item to be visible in frontend return 0
 			return 0;
 		}
-
-		// Translate the state
-		switch ($item['state'])
+		else
 		{
-			// Published and archived items only should return a published state
-			case 1;
-			case 2:
-				return 1;
-
-			// All other states should return an unpublished state
-			default:
-			case 0:
-				return 0;
+			return 1;
 		}
 	}
 
@@ -489,7 +506,8 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * Method to update index data on published state changes
 	 *
 	 * @param   array    $pks       A list of primary key ids of the content that has changed state.
-	 * @param   array    $value     ['publish']: The value of the state that is changed to. ['task']: The state that is chenged
+	 * @param   integer  $value     0: unpublished / 1: published / 2: archived / 3: not approved / 4: approved
+	 * 														  5: not featured / 6: featured
 	 * @param   bool     $reindex   ture, if item should be reindexed [optional]
 	 *
 	 * @return  void
@@ -512,30 +530,8 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			$this->db->setQuery($query);
 			$item = $this->db->loadObject();
 
-			switch ($value['task'])
-			{
-				case 'FinderChangeState':
-					$approved = $value['approved'];
-					$hidden   = $value['hidden'];
-					$state    = $value['state'];
-					break;
-
-				case 'approve':
-					$approved = $value['publish'];
-					$hidden   = $item->hidden;
-					$state    = $item->state;
-					break;
-
-				case 'publish':
-				default:
-					$approved = $item->approved;
-					$hidden   = $item->hidden;
-					$state    = $value['publish'];
-					break;
-			}
-
 			// Translate the state.
-			$temp = $this->translateState(array('state'=>$state, 'hidden'=>$hidden, 'approved'=>$approved), $item->cat_state);
+			$temp = $this->translateState($item, $value);
 
 			// Update the item.
 			$this->change($pk, 'state', $temp);
@@ -544,6 +540,51 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			{
 				// Reindex the item
 				$this->reindex($pk);
+			}
+		}
+	}
+
+	/**
+	 * Method to update index data on category access level changes
+	 *
+	 * @param   array    $pks       A list of primary key ids of the content that has changed state.
+	 * @param   integer  $value     The value of the state that the content has been changed to.
+	 * @param   bool     $reindex   ture, if items should be reindexed [optional]
+	 *
+	 * @return  void
+	 *
+	 * @since   2.5
+	 */
+	protected function categoryStateChange($pks, $value, $reindex=true)
+	{
+		/*
+		 * The item's published state is tied to the category
+		 * published state so we need to look up all published states
+		 * before we change anything.
+		 */
+		foreach ($pks as $pk)
+		{
+			$query = clone $this->getStateQuery();
+			$query->where('c.id = ' . (int) $pk);
+
+			// Get the published states.
+			$this->db->setQuery($query);
+			$items = $this->db->loadObjectList();
+
+			// Adjust the state for each item within the category.
+			foreach ($items as $item)
+			{
+				// Translate the state.
+				$temp = $this->translateState($item, $value);
+
+				// Update the item.
+				$this->change($item->id, 'state', $temp);
+
+				if($reindex)
+				{
+					// Reindex the item
+					$this->reindex($item->id);
+				}
 			}
 		}
 	}
