@@ -69,6 +69,14 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	protected $autoloadLanguage = true;
 
 	/**
+	 * Temporary storage.
+	 *
+	 * @var    mixed
+	 * @since  3.1
+	 */
+	protected $tmp = null;
+
+	/**
 	 * Method to remove the link information for items that have been deleted.
 	 * Event is triggered at the same time as the onContentAfterDelete event
 	 *
@@ -296,8 +304,10 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		$item->addInstruction(FinderIndexer::META_CONTEXT, 'owner');
 		$item->addInstruction(FinderIndexer::META_CONTEXT, 'author');
 
-		// Translate the state. Articles should only be published if the category is published.
-		$item->state = $this->translateState(array('state'=>$item->state, 'hidden'=>$item->hidden, 'approved'=>$item->approved), $item->cat_state);
+		// Translate the state.
+		$this->tmp = $item;
+		$item->state = $this->translateState($item->state, $item->cat_state);
+		$this->tmp = null;
 
 		// Add the type taxonomy data.
 		$item->addTaxonomy('Type', 'Image (JoomGallery)');
@@ -453,23 +463,23 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	}
 
 	/**
-	 * Method to translate the native content states into states that the indexer can use.
+	 * Method to translate the native content states into states that the
+	 * indexer can use.
 	 *
-	 * @param   object   $item     The item to be changed.
-	 * @param   integer  $value    The value to change to.
+	 * @param   integer  $value     The item state.
+	 * @param   integer  $category  The category state. [optional]
 	 *
 	 * @return  integer  The translated indexer state.
 	 *
 	 * @since   2.5
 	 */
-	protected function translateState($item, $value)
+	protected function translateState($value, $category = null)
 	{
-
 		// states before change
-		$published = $item->published;
-		$approved  = $item->approved;
-		$hidden    = $item->hidden;
-		$category  = $item->cat_date;
+		$published = $this->tmp->published;
+		$approved  = $this->tmp->approved;
+		$hidden    = $this->tmp->hidden;
+		$category  = $this->tmp->cat_state;
 
 		switch($value)
 		{
@@ -531,7 +541,9 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			$item = $this->db->loadObject();
 
 			// Translate the state.
-			$temp = $this->translateState($item, $value);
+			$this->tmp = $item;
+			$temp = $this->translateState($value, $item->cat_state);
+			$this->tmp = null;
 
 			// Update the item.
 			$this->change($pk, 'state', $temp);
@@ -565,7 +577,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		foreach ($pks as $pk)
 		{
 			$query = clone $this->getStateQuery();
-			$query->where('c.id = ' . (int) $pk);
+			$query->where('c.cid = ' . (int) $pk);
 
 			// Get the published states.
 			$this->db->setQuery($query);
@@ -575,7 +587,9 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			foreach ($items as $item)
 			{
 				// Translate the state.
-				$temp = $this->translateState($item, $value);
+				$this->tmp = $item;
+				$temp = $this->translateState($value, $item->cat_state);
+				$this->tmp = null;
 
 				// Update the item.
 				$this->change($item->id, 'state', $temp);
