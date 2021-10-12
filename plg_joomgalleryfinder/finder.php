@@ -125,7 +125,7 @@ class PlgJoomgalleryFinder extends JPlugin
 			}
 			$where .= ')';
 
-			return array('images.where' => $aliases['images'].'.id IN '.$where);
+			return array('searchengines' => array($this->title), 'images.where' => $aliases['images'].'.id IN '.$where);
 		}
 	}
 
