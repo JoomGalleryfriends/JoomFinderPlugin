@@ -113,19 +113,26 @@ class PlgJoomgalleryFinder extends JPlugin
 				}
 			}
 
-			$where = '(';
-			foreach ($ids as $key => $id)
+			if(count($ids) >= 1)
 			{
-				if($key !== 0)
+				$where = '(';
+				foreach ($ids as $key => $id)
 				{
-					$where .= ', ';
+					if($key !== 0)
+					{
+						$where .= ', ';
+					}
+
+					$where .= strval($id);
 				}
+				$where .= ')';
 
-				$where .= strval($id);
+				return array('searchengines' => array($this->title), 'images.where' => $aliases['images'].'.id IN '.$where);
 			}
-			$where .= ')';
-
-			return array('searchengines' => array($this->title), 'images.where' => $aliases['images'].'.id IN '.$where);
+			else
+			{
+				return array('searchengines' => array($this->title), 'images.where' => $aliases['images'].'.id = 0');
+			}
 		}
 	}
 

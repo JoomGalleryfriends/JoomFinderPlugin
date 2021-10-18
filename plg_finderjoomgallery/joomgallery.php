@@ -69,6 +69,14 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	protected $autoloadLanguage = true;
 
 	/**
+	 * Item type that is currently performed
+	 *
+	 * @var    string
+	 * @since  3.1
+	 */
+	protected $item_type = 'com_joomgallery.image';
+
+	/**
 	 * Temporary storage.
 	 *
 	 * @var    mixed
@@ -128,6 +136,9 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		// We only want to handle joomgallery images here.
 		if ($context === 'com_joomgallery.image' || $context === 'com_joomgallery.image.quick' || $context === 'com_joomgallery.image.batch')
 		{
+			// Save the item type
+			$this->item_type = 'com_joomgallery.image';
+
 			// Check if the access levels are different.
 			if (!$isNew && $this->old_access != $row->access)
 			{
@@ -135,10 +146,36 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 				$this->itemAccessChange($row);
 			}
 
-			// Check if published, hidden or approved changed
+			// Check if published or hidden or approved changed
 			if (!$isNew && ($this->old_published != $row->published || $this->old_hidden != $row->hidden || $this->old_approved != $row->approved))
 			{
-				$value = array('task'=>'FinderChangeState', 'state'=> $row->published, 'hidden'=> $row->hidden, 'approved'=>$row->approved);
+				if($this->old_approved != $row->approved)
+				{
+					// approved has changed
+					if($row->approved != 1)
+					{
+						// not approved anymore
+						$value = 3;
+					}
+					else
+					{
+						// approved now
+						$value = 4;
+					}
+				}
+				else
+				{
+					if($row->published == 0 || $row->hidden != 0)
+					{
+						// threat the image as if its state has changed to unpublished
+						$value = 0;
+					}
+					else
+					{
+						// threat the image as if its state has changed to published
+						$value = 1;
+					}
+				}
 
 				// Process the change.
 				$this->itemStateChange(array($row->id), $value, false);
@@ -148,13 +185,34 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			$this->reindex($row->id);
 		}
 
-		// Check for access changes in the category.
+		// We only want to handle joomgallery categories here.
 		if(in_array($context, array('com_joomgallery.category')))
 		{
+			// Save the item type
+			$this->item_type = 'com_joomgallery.category';
+
 			// Check if the access levels are different.
 			if (!$isNew && $this->old_cataccess != $row->access)
 			{
 				$this->categoryAccessChange($row);
+			}
+
+			// Check if published, hidden, in_hidden or hidden from search changed
+			if (!$isNew && ($this->old_catpublished != $row->published || $this->old_cathidden != $row->hidden || $this->old_catinhidden != $row->in_hidden || $this->old_catexclude != $row->exclude_search))
+			{
+				if($row->published == 0 || $row->hidden != 0 || $row->in_hidden != 0 || $row->exclude_search != 0)
+				{
+					// threat the category as if its state has changed to unpublished
+					$value = 0;
+				}
+				else
+				{
+					// threat the category as if its state has changed to published
+					$value = 1;
+				}
+
+				// Process the change.
+				$this->categoryStateChange(array($row->id), $value, false);
 			}
 		}
 
@@ -180,6 +238,9 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		// We only want to handle joomgallery images here.
 		if ($context === 'com_joomgallery.image' || $context === 'com_joomgallery.image.quick' || $context === 'com_joomgallery.image.batch')
 		{
+			// Save the item type
+			$this->item_type = 'com_joomgallery.image';
+
 			// Query the database for the old access level if the item isn't new.
 			if (!$isNew)
 			{
@@ -190,10 +251,13 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		// Check for access levels from the category.
 		if(in_array($context, array('com_joomgallery.category')))
 		{
+			// Save the item type
+			$this->item_type = 'com_joomgallery.category';
+
 			// Query the database for the old access level if the item isn't new.
 			if (!$isNew)
 			{
-				$this->checkCategoryAccess($row);
+				$this->checkCategoryState($row);
 			}
 		}
 
@@ -222,6 +286,9 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		// We only want to handle joomgallery images that get changed in the publishing state.
 		if ($context === 'com_joomgallery.image' && $value >= 0)
 		{
+			// Save the item type
+			$this->item_type = 'com_joomgallery.image';
+
 			$this->itemStateChange($pks, $value);
 		}
 
@@ -254,6 +321,9 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		// We only want to handle joomgallery categories that get changed in the publishing state.
 		if ($extension === 'com_joomgallery.category' && $value >= 0)
 		{
+			// Save the item type
+			$this->item_type = 'com_joomgallery.category';
+
 			$this->categoryStateChange($pks, $value);
 		}
 	}
@@ -373,7 +443,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			->select('a.published AS state, a.catid, a.imgdate')
 			->select('a.hidden, a.featured, a.checked_out, a.approved, a.params')
 			->select('a.metakey, a.metadesc, a.access, a.ordering')
-			->select('c.name AS category, c.published AS cat_state, c.access AS cat_access')
+			->select('c.name AS category, c.published AS cat_state')
 			->select('u.name AS owner')
 			->from('#__joomgallery AS a')
 			->join('LEFT', '#__joomgallery_catg AS c ON c.cid = a.catid')
@@ -400,11 +470,14 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		// Item ID
 		$query->select('a.id');
 
-		// Item states
+		// Item and category published state
+		$query->select('a.published AS state, c.published AS cat_state');
+
+		// Additional item states
 		$query->select('a.hidden AS hidden, a.approved AS approved');
 
-		// Item and category published state
-		$query->select('a.published AS published, c.published AS cat_state');
+		// Additional category states
+		$query->select('c.hidden AS cat_hidden, c.in_hidden AS cat_inhidden, c.exclude_search AS cat_exclude');
 
 		// Item and category access levels
 		$query->select('a.access, c.access AS cat_access')
@@ -415,7 +488,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	}
 
 	/**
-	 * Method to check the existing access level for categories
+	 * Method to check the existing states for categories
 	 *
 	 * @param   JTable  $row  A JTable object
 	 *
@@ -423,16 +496,26 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @since   2.5
 	 */
-	protected function checkCategoryAccess($row)
+	protected function checkCategoryState($row)
 	{
 		$query = $this->db->getQuery(true)
+			->select($this->db->quoteName('published'))
+			->select($this->db->quoteName('hidden'))
+			->select($this->db->quoteName('in_hidden'))
+			->select($this->db->quoteName('exclude_search'))
 			->select($this->db->quoteName('access'))
 			->from($this->db->quoteName('#__joomgallery_catg'))
 			->where($this->db->quoteName('id') . ' = ' . (int) $row->id);
 		$this->db->setQuery($query);
+		$states = $this->db->loadObject();
 
-		// Store the access level to determine if it changes
-		$this->old_cataccess = $this->db->loadResult();
+		// Store the states to determine if it changes
+		$this->old_cataccess = $states->access;
+		$this->old_catpublished = $states->published;
+		$this->old_cathidden = $states->hidden;
+		$this->old_catinhidden = $states->in_hidden;
+		$this->old_catexclude = $states->exclude_search;
+
 	}
 
 	/**
@@ -450,6 +533,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			->select($this->db->quoteName('published'))
 			->select($this->db->quoteName('hidden'))
 			->select($this->db->quoteName('approved'))
+			->select($this->db->quoteName('access'))
 			->from($this->db->quoteName('#__joomgallery'))
 			->where($this->db->quoteName('id') . ' = ' . (int) $row->id);
 		$this->db->setQuery($query);
@@ -466,8 +550,8 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * Method to translate the native content states into states that the
 	 * indexer can use.
 	 *
-	 * @param   integer  $value     The item state.
-	 * @param   integer  $category  The category state. [optional]
+	 * @param   array    $value     The new item state. (0:umpublished,1:published,2:archived,3:not_approved,4:approved,5:not_featured,6:featured)
+	 * @param   integer  $category  The category state. [not used in this plugin]
 	 *
 	 * @return  integer  The translated indexer state.
 	 *
@@ -476,32 +560,60 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	protected function translateState($value, $category = null)
 	{
 		// states before change
-		$published = $this->tmp->published;
-		$approved  = $this->tmp->approved;
-		$hidden    = $this->tmp->hidden;
-		$category  = $this->tmp->cat_state;
+		$published    = $this->tmp->state;
+		$approved     = $this->tmp->approved;
+		$hidden       = $this->tmp->hidden;
+		$cat_state    = $this->tmp->cat_state;
+		$cat_hidden   = $this->tmp->cat_hidden;
+		$cat_inhidden = $this->tmp->cat_inhidden;
+		$cat_exclude  = $this->tmp->cat_exclude;
 
-		switch($value)
+		if($this->item_type == 'com_joomgallery.image')
 		{
-			case 0:
-				$published = 0;
-				break;
-			case 1:
-				// break intensionally omitted
-			case 2:
-				$published = 1;
-				break;
-			case 3:
-				$approved = 0;
-				break;
-			case 4:
-				$approved = 1;
-				break;
-			default:
-				break;
+			switch($value)
+			{
+				case 0:
+					$published = 0;
+					break;
+				case 1:
+					// break intensionally omitted
+				case 2:
+					$published = 1;
+					break;
+				case 3:
+					$approved = 0;
+					break;
+				case 4:
+					$approved = 1;
+					break;
+				default:
+					break;
+			}
 		}
 
-		if($published != 1 || $approved != 1 || $hidden != 0 || ($category != null && $category != 1))
+		if($this->item_type == 'com_joomgallery.category')
+		{
+			switch($value)
+			{
+				case 0:
+					$cat_state = 0;
+					break;
+				case 1:
+					// break intensionally omitted
+				case 2:
+					$cat_state = 1;
+					break;
+				case 3:
+					break;
+				case 4:
+					break;
+				default:
+					break;
+			}
+		}
+
+
+		if($published != 1 || $approved != 1 || $hidden != 0 || $cat_state != 1 || $cat_hidden != 0 || $cat_inhidden != 0 || $cat_exclude != 0)
 		{
 			// if one of these states are not set the item to be visible in frontend return 0
 			return 0;
@@ -516,8 +628,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * Method to update index data on published state changes
 	 *
 	 * @param   array    $pks       A list of primary key ids of the content that has changed state.
-	 * @param   integer  $value     0: unpublished / 1: published / 2: archived / 3: not approved / 4: approved
-	 * 														  5: not featured / 6: featured
+	 * @param   integer  $value     The new item state. (0:umpublished,1:published,2:archived,3:not_approved,4:approved,5:not_featured,6:featured)
 	 * @param   bool     $reindex   ture, if item should be reindexed [optional]
 	 *
 	 * @return  void
@@ -542,11 +653,11 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 
 			// Translate the state.
 			$this->tmp = $item;
-			$temp = $this->translateState($value, $item->cat_state);
+			$indexer_state = $this->translateState($value, $item->cat_state);
 			$this->tmp = null;
 
 			// Update the item.
-			$this->change($pk, 'state', $temp);
+			$this->change($pk, 'state', $indexer_state);
 
 			if($reindex)
 			{
@@ -560,7 +671,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * Method to update index data on category access level changes
 	 *
 	 * @param   array    $pks       A list of primary key ids of the content that has changed state.
-	 * @param   integer  $value     The value of the state that the content has been changed to.
+	 * @param   integer  $value     The new item state. (0:umpublished,1:published,2:archived,3:not_approved,4:approved,5:not_featured,6:featured)
 	 * @param   bool     $reindex   ture, if items should be reindexed [optional]
 	 *
 	 * @return  void
@@ -588,11 +699,11 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			{
 				// Translate the state.
 				$this->tmp = $item;
-				$temp = $this->translateState($value, $item->cat_state);
+				$indexer_state = $this->translateState($value, $item->cat_state);
 				$this->tmp = null;
 
 				// Update the item.
-				$this->change($item->id, 'state', $temp);
+				$this->change($item->id, 'state', $indexer_state);
 
 				if($reindex)
 				{
