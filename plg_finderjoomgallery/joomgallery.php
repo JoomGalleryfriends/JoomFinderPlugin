@@ -186,7 +186,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		}
 
 		// We only want to handle joomgallery categories here.
-		if(in_array($context, array('com_joomgallery.category')))
+		if($context === 'com_joomgallery.category')
 		{
 			// Save the item type
 			$this->item_type = 'com_joomgallery.category';
@@ -212,7 +212,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 				}
 
 				// Process the change.
-				$this->categoryStateChange(array($row->id), $value, false);
+				$this->categoryStateChange(array($row->cid), $value, false);
 			}
 		}
 
@@ -505,7 +505,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			->select($this->db->quoteName('exclude_search'))
 			->select($this->db->quoteName('access'))
 			->from($this->db->quoteName('#__joomgallery_catg'))
-			->where($this->db->quoteName('id') . ' = ' . (int) $row->id);
+			->where($this->db->quoteName('cid') . ' = ' . (int) $row->id);
 		$this->db->setQuery($query);
 		$states = $this->db->loadObject();
 
@@ -672,7 +672,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @param   array    $pks       A list of primary key ids of the content that has changed state.
 	 * @param   integer  $value     The new item state. (0:umpublished,1:published,2:archived,3:not_approved,4:approved,5:not_featured,6:featured)
-	 * @param   bool     $reindex   ture, if items should be reindexed [optional]
+	 * @param   bool     $reindex   ture, if item should be reindexed [optional]
 	 *
 	 * @return  void
 	 *
@@ -711,6 +711,38 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 					$this->reindex($item->id);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Method to update index data on category access level changes
+	 *
+	 * @param   JTable  $row  A JTable object
+	 *
+	 * @return  void
+	 *
+	 * @since   2.5
+	 */
+	protected function categoryAccessChange($row)
+	{
+		$query = clone $this->getStateQuery();
+		$query->where('c.cid = ' . (int) $row->id);
+
+		// Get the access level.
+		$this->db->setQuery($query);
+		$items = $this->db->loadObjectList();
+
+		// Adjust the access level for each item within the category.
+		foreach ($items as $item)
+		{
+			// Set the access level.
+			$temp = max($item->access, $row->access);
+
+			// Update the item.
+			$this->change((int) $item->id, 'access', $temp);
+
+			// Reindex the item
+			$this->reindex($item->id);
 		}
 	}
 }
