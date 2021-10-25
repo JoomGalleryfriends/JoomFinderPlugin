@@ -77,6 +77,14 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	protected $item_type = 'com_joomgallery.image';
 
 	/**
+	 * Temporary state.
+	 *
+	 * @var    array
+	 * @since  3.1
+	 */
+	protected $tmp_state = array('state'=>null,'access'=>null);
+
+	/**
 	 * Temporary storage.
 	 *
 	 * @var    mixed
@@ -350,6 +358,18 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		}
 
 		$item->context = 'com_joomgallery';
+
+		// Check tmp state
+		if(!is_null($this->tmp_state['state']))
+		{
+			$item->state = $this->tmp_state['state'];
+		}
+
+		// Check tmp access
+		if(!is_null($this->tmp_state['access']))
+		{
+			$item->access = $this->tmp_state['access'];
+		}
 
 		// Get the language
 		$item->language = '*';
@@ -658,12 +678,16 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 
 			// Update the item.
 			$this->change($pk, 'state', $indexer_state);
+			$this->tmp_state['state'] = $indexer_state;
 
 			if($reindex)
 			{
 				// Reindex the item
 				$this->reindex($pk);
 			}
+
+			// reset the tmp values
+			$this->tmp_state['state'] = null;
 		}
 	}
 
@@ -704,26 +728,67 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 
 				// Update the item.
 				$this->change($item->id, 'state', $indexer_state);
+				$this->tmp_state['state'] = $indexer_state;
 
 				if($reindex)
 				{
 					// Reindex the item
 					$this->reindex($item->id);
 				}
+
+				// reset the tmp values
+				$this->tmp_state['state'] = null;
 			}
 		}
+	}
+
+	/**
+	 * Method to update index data on access level changes
+	 *
+	 * @param   JTable  $row  A JTable object
+	 * @param   bool    $reindex   ture, if item should be reindexed [optional]
+	 *
+	 * @return  void
+	 *
+	 * @since   2.5
+	 */
+	protected function itemAccessChange($row, $reindex=true)
+	{
+		$query = clone $this->getStateQuery();
+		$query->where('a.id = ' . (int) $row->id);
+
+		// Get the access level.
+		$this->db->setQuery($query);
+		$item = $this->db->loadObject();
+
+		// Set the access level.
+		$temp = max($row->access, $item->cat_access);
+
+		// Update the item.
+		$this->change((int) $row->id, 'access', $temp);
+		$this->tmp_state['access'] = $temp;
+
+		if($reindex)
+		{
+			// Reindex the item
+			$this->reindex($row->id);
+		}
+
+		// reset the tmp values
+		$this->tmp_state['access'] = null;
 	}
 
 	/**
 	 * Method to update index data on category access level changes
 	 *
 	 * @param   JTable  $row  A JTable object
+	 * @param   bool    $reindex   ture, if item should be reindexed [optional]
 	 *
 	 * @return  void
 	 *
 	 * @since   2.5
 	 */
-	protected function categoryAccessChange($row)
+	protected function categoryAccessChange($row, $reindex=true)
 	{
 		$query = clone $this->getStateQuery();
 		$query->where('c.cid = ' . (int) $row->id);
@@ -740,9 +805,16 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 
 			// Update the item.
 			$this->change((int) $item->id, 'access', $temp);
+			$this->tmp_state['access'] = $temp;
 
-			// Reindex the item
-			$this->reindex($item->id);
+			if($reindex)
+			{
+				// Reindex the item
+				$this->reindex($item->id);
+			}
+
+			// reset the tmp values
+			$this->tmp_state['access'] = null;
 		}
 	}
 }
