@@ -525,16 +525,16 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			->select($this->db->quoteName('exclude_search'))
 			->select($this->db->quoteName('access'))
 			->from($this->db->quoteName('#__joomgallery_catg'))
-			->where($this->db->quoteName('cid') . ' = ' . (int) $row->id);
+			->where($this->db->quoteName('cid') . ' = ' . (int) $row->cid);
 		$this->db->setQuery($query);
 		$states = $this->db->loadObject();
 
 		// Store the states to determine if it changes
-		$this->old_cataccess = $states->access;
+		$this->old_cataccess    = $states->access;
 		$this->old_catpublished = $states->published;
-		$this->old_cathidden = $states->hidden;
-		$this->old_catinhidden = $states->in_hidden;
-		$this->old_catexclude = $states->exclude_search;
+		$this->old_cathidden    = $states->hidden;
+		$this->old_catinhidden  = $states->in_hidden;
+		$this->old_catexclude   = $states->exclude_search;
 
 	}
 
@@ -560,10 +560,10 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		$states = $this->db->loadObject();
 
 		// Store the states to determine if it changes
-		$this->old_access = $states->access;
+		$this->old_access    = $states->access;
 		$this->old_published = $states->published;
-		$this->old_approved = $states->approved;
-		$this->old_hidden = $states->hidden;
+		$this->old_approved  = $states->approved;
+		$this->old_hidden    = $states->hidden;
 	}
 
 	/**
@@ -791,7 +791,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	protected function categoryAccessChange($row, $reindex=true)
 	{
 		$query = clone $this->getStateQuery();
-		$query->where('c.cid = ' . (int) $row->id);
+		$query->where('c.cid = ' . (int) $row->cid);
 
 		// Get the access level.
 		$this->db->setQuery($query);
