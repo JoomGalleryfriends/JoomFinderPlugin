@@ -14,6 +14,7 @@ use \Joomla\CMS\Factory;
 use \Joomla\CMS\Language\Text;
 use \Joomla\CMS\Filesystem\File;
 use \Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use \Joomla\CMS\Version;
 
 /**
  * Install method
@@ -264,6 +265,17 @@ class pkg_joomFinderPluginInstallerScript
   private function getInstallerMSG($act_version, $new_version, $methode)
   {
     $msg = '';
+
+    // joomla version compatibility check
+    $jversion  = new Version;
+    $joomla_version = $jversion->getLongVersion();
+
+    if ($joomla_version === '3.9.27')
+    {
+      $msg .= '<h4 class="alert-heading">'.Text::_('PKG_JOOMFINDERPLUGIN_UPDATE_MESSAGE_TITLE_JOOMLA_BUG').'</h3>';
+      $msg .= '<div class="alert-massage" style="font-size: small;">'.Text::sprintf('PKG_JOOMFINDERPLUGIN_UPDATE_MESSAGE_JOOMLA_BUG', $joomla_version).'</div>';
+      $msg .= '<br />';
+    }
 
     // install of pre release version
     if (($new_version[0] == 0) && ($methode == 'update' || $methode == 'install'))
