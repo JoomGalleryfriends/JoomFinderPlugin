@@ -108,19 +108,38 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	{
 		if ($context === 'com_joomgallery.image')
 		{
-			$id = $table->id;
+			//get image id
+			$ids = array($table->id);
+		}
+		elseif ($context === 'com_joomgallery.category')
+		{
+			// get image ids from category
+			$query = clone $this->getStateQuery();
+			$query->where('c.cid = ' . (int) $table->cid);
+			$this->db->setQuery($query);
+			$items = $this->db->loadObjectList();
+
+			$ids = array();
+			foreach ($items as $item)
+			{
+				array_push($ids, $item->id);
+			}
 		}
 		elseif ($context === 'com_finder.index')
 		{
-			$id = $table->link_id;
+			// get item id
+			$ids = array($table->link_id);
 		}
 		else
 		{
 			return true;
 		}
 
-		// Remove item from the index.
-		return $this->remove($id);
+		foreach ($ids as $id)
+		{
+			// Remove item from the index.
+			return $this->remove($id);
+		}
 	}
 
 	/**
