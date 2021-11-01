@@ -15,8 +15,8 @@
     <scriptfile>script.php</scriptfile>
 
     <files>
-       <file type="plugin" id="plg_finderjoomgallery" group="finder">plg_finderjoomgallery.zip</file>
-       <file type="plugin" id="plg_joomgalleryfinder" group="joomgallery">plg_joomgalleryfinder.zip</file>
+       <file type="plugin" id="joomgallery" group="finder">plg_finderjoomgallery.zip</file>
+       <file type="plugin" id="finder" group="joomgallery">plg_joomgalleryfinder.zip</file>
     </files>
 
     <languages>
