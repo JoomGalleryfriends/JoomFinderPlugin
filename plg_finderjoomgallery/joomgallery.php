@@ -730,8 +730,16 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		 */
 		foreach ($pks as $pk)
 		{
+      // create where array out of all subcategories
+      $subcats     = JoomHelper::getAllSubCategories($pk, true, true);
+      $where_array = array();
+      foreach ($subcats as $catid)
+      {
+        array_push($where_array, 'c.cid = ' . (int) $catid);
+      }
+
 			$query = clone $this->getStateQuery();
-			$query->where('c.cid = ' . (int) $pk);
+			$query->where($where_array, 'OR');
 
 			// Get the published states.
 			$this->db->setQuery($query);
@@ -809,8 +817,16 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 */
 	protected function categoryAccessChange($row, $reindex=true)
 	{
-		$query = clone $this->getStateQuery();
-		$query->where('c.cid = ' . (int) $row->cid);
+    // create where array out of all subcategories
+    $subcats     = JoomHelper::getAllSubCategories($row->cid, true, true);
+    $where_array = array();
+    foreach ($subcats as $catid)
+    {
+      array_push($where_array, 'c.cid = ' . (int) $catid);
+    }
+
+    $query = clone $this->getStateQuery();
+    $query->where($where_array, 'OR');
 
 		// Get the access level.
 		$this->db->setQuery($query);
