@@ -127,14 +127,17 @@ class pkg_joomFinderPluginInstallerScript
     {
       // save version information (actual version, new version) to object
       //-----------------------------------------------------------------
-      $path1 = JPATH_ADMINISTRATOR.DIRECTORY_SEPARATOR."plugins".DIRECTORY_SEPARATOR."joomgallery".DIRECTORY_SEPARATOR."finder".DIRECTORY_SEPARATOR."finder.xml";
-      $path2 = JPATH_ADMINISTRATOR.DIRECTORY_SEPARATOR."plugins".DIRECTORY_SEPARATOR."finder".DIRECTORY_SEPARATOR."joomgallery".DIRECTORY_SEPARATOR."joomgallery.xml";
+      $path1 = JPATH_PLUGINS.DIRECTORY_SEPARATOR."joomgallery".DIRECTORY_SEPARATOR."finder".DIRECTORY_SEPARATOR."finder.xml";
+      $path2 = JPATH_PLUGINS.DIRECTORY_SEPARATOR."finder".DIRECTORY_SEPARATOR."joomgallery".DIRECTORY_SEPARATOR."joomgallery.xml";
       if(File::exists($path1) && File::exists($path2))
       {
         $xml1 = simplexml_load_file($path1);
         $xml2 = simplexml_load_file($path2);
 
-        if($xml1->version != $xml2->version)
+        $v1 = (string )$xml1->version;
+        $v2 = (string )$xml2->version;
+
+        if($v1 != $v2)
         {
           Factory::getApplication()->enqueueMessage('Plugins dont have the same version number!','error');
         }
