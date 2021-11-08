@@ -70,7 +70,7 @@ class PlgJoomgalleryFinder extends JPlugin
 	 *
 	 * @since   3.6.0
 	 */
-	public function onJoomSearch($searchstring, $aliases, $context)
+	public function onJoomSearch($searchstring, $aliases, $context = '')
 	{
 		if(in_array($context, array('com_joomgallery.'.$this->title)))
 		{
