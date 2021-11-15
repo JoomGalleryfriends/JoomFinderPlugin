@@ -10,6 +10,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Table\Table;
 
 JLoader::register('FinderIndexerAdapter', JPATH_ADMINISTRATOR . '/components/com_finder/helpers/indexer/adapter.php');
 
@@ -77,7 +78,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	protected $item_type = 'com_joomgallery.image';
 
 	/**
-	 * Temporary state.
+	 * Temporary item state.
 	 *
 	 * @var    array
 	 * @since  3.1
@@ -384,11 +385,17 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			$item->state = $this->tmp_state['state'];
 		}
 
+    // Change category access due to parent categories
+    $item->cat_access = $this->getParentCatAccess($item->catid);
+
 		// Check tmp access
 		if(!is_null($this->tmp_state['access']))
 		{
 			$item->access = $this->tmp_state['access'];
 		}
+
+    // Translate access
+    $item->access = max($item->access, $item->cat_access);
 
 		// Get the language
 		$item->language = '*';
@@ -414,9 +421,10 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 		$item->addInstruction(FinderIndexer::META_CONTEXT, 'author');
 
 		// Translate the state.
-		$this->tmp = $item;
+		$this->tmp   = $item;
+    $this->tmp   = $this->getParentCatStates($this->tmp);
 		$item->state = $this->translateState($item->state, $item->cat_state);
-		$this->tmp = null;
+		$this->tmp   = null;
 
 		// Add the type taxonomy data.
 		$item->addTaxonomy('Type', 'Image (JoomGallery)');
@@ -457,8 +465,17 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 */
 	protected function setup()
 	{
+    // Define JoomGallery constants
+    require_once(JPATH_ADMINISTRATOR . '/components/com_joomgallery/includes/defines.php');
+
+    // Include search path
+    Table::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_joomgallery/tables');
+
 		// Load dependent classes.
 		JLoader::register('JoomRouting', JPATH_SITE . '/components/com_joomgallery/helpers/routing.php');
+    JLoader::register('JoomHelper',  JPATH_ADMINISTRATOR . '/components/com_joomgallery/helpers/helper.php');
+    JLoader::register('JoomAmbit',   JPATH_ADMINISTRATOR . '/components/com_joomgallery/helpers/ambit.php');
+    JLoader::register('JoomConfig',  JPATH_ADMINISTRATOR . '/components/com_joomgallery/helpers/config.php');
 
 		return true;
 	}
@@ -599,13 +616,14 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	protected function translateState($value, $category = null)
 	{
 		// states before change
-		$published    = $this->tmp->state;
-		$approved     = $this->tmp->approved;
-		$hidden       = $this->tmp->hidden;
-		$cat_state    = $this->tmp->cat_state;
-		$cat_hidden   = $this->tmp->cat_hidden;
-		$cat_inhidden = $this->tmp->cat_inhidden;
-		$cat_exclude  = $this->tmp->cat_exclude;
+		$published      = $this->tmp->state;
+		$approved       = $this->tmp->approved;
+		$hidden         = $this->tmp->hidden;
+		$cat_state      = (isset($this->tmp->cat_state)) ? $this->tmp->cat_state : 1;
+		$cat_hidden     = (isset($this->tmp->cat_hidden)) ? $this->tmp->cat_hidden : 0;
+		$cat_inhidden   = (isset($this->tmp->cat_inhidden)) ? $this->tmp->cat_inhidden : 0;
+		$cat_exclude    = (isset($this->tmp->cat_exclude)) ? $this->tmp->cat_exclude : 0;
+    $cat_inexcluded = (isset($this->tmp->cat_inexcluded)) ? $this->tmp->cat_inexcluded : 0;
 
 		if($this->item_type == 'com_joomgallery.image')
 		{
@@ -651,8 +669,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			}
 		}
 
-
-		if($published != 1 || $approved != 1 || $hidden != 0 || $cat_state != 1 || $cat_hidden != 0 || $cat_inhidden != 0 || $cat_exclude != 0)
+		if($published != 1 || $approved != 1 || $hidden != 0 || $cat_state != 1 || $cat_hidden != 0 || $cat_inhidden != 0 || $cat_exclude != 0 || $cat_inexcluded != 0)
 		{
 			// if one of these states are not set the item to be visible in frontend return 0
 			return 0;
@@ -852,4 +869,95 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 			$this->tmp_state['access'] = null;
 		}
 	}
+
+  /**
+	 * Method to update item object with states from parent categories
+	 *
+	 * @param   JTable  $item  A JTable object
+	 *
+	 * @return  JTable  extended item object
+	 *
+	 * @since   1.0
+	 */
+  protected function getParentCatStates($item)
+  {
+    // get parent cats
+    $parent_cats = JoomHelper::getAllParentCategories($item->catid, true);
+
+    $where_array = array();
+    foreach ($parent_cats as $cat)
+    {
+      array_push($where_array, 'cid = ' . $cat->cid);
+    }
+
+    // get all states of the parent cats
+    $query = $this->db->getQuery(true);
+    $query->select($this->db->quoteName(array('published', 'hidden','exclude_search')));
+    $query->from($this->db->quoteName('#__joomgallery_catg'));
+    $query->where($where_array, 'OR');
+    $this->db->setQuery($query);
+    $results = $this->db->loadObjectList();
+
+    // add parent states to item object
+    foreach ($results as $res)
+    {
+      if($res->hidden != 0)
+      {
+        // one of the parent categories is hidden
+        $item->cat_inhidden = 1;
+      }
+
+      if($res->exclude_search != 0)
+      {
+        // one of the parent categories is excluded from search
+        $item->cat_inexcluded = 1;
+      }
+
+      if($res->published < 1)
+      {
+        // one of the parent categories has a publish state which is not 1 or 2
+        $item->cat_state = 0;
+      }
+    }
+
+    return $item;
+  }
+
+  /**
+	 * Method to update item object with access from parent categories
+	 *
+	 * @param   integer  $catid  ID of the child category
+	 *
+	 * @return  integer  max access value of any parent category
+	 *
+	 * @since   1.0
+	 */
+  protected function getParentCatAccess($catid)
+  {
+    // get parent cats
+    $parent_cats = JoomHelper::getAllParentCategories($catid, true);
+
+    $where_array = array();
+    foreach($parent_cats as $cat)
+    {
+      array_push($where_array, 'cid = ' . $cat->cid);
+    }
+
+    // get all states of the parent cats
+    $query = $this->db->getQuery(true);
+    $query->select($this->db->quoteName(array('access')));
+    $query->from($this->db->quoteName('#__joomgallery_catg'));
+    $query->where($where_array, 'OR');
+    $this->db->setQuery($query);
+    $results = $this->db->loadObjectList();
+
+    // add parent states to item object
+    $cat_access = 1;
+    foreach ($results as $res)
+    {
+      $cat_access = max($cat_access, $res->access);
+    }
+
+    return $cat_access;
+  }
 }
