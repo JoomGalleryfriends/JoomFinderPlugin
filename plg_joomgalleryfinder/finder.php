@@ -13,6 +13,7 @@ use  Joomla\CMS\Plugin\PluginHelper;
 use  Joomla\CMS\Factory;
 use  Joomla\CMS\Session\Session;
 use  Joomla\CMS\Uri\Uri;
+use  Joomla\CMS\Router\Router;
 
 /**
  * Smart Search JoomGallery Plugin.
@@ -105,7 +106,7 @@ class PlgJoomgalleryFinder extends JPlugin
 			$ids = array();
 			foreach ($xml->channel->item as $key => $image)
 			{
-				$id = $this->getIDfromUrl($image->link);
+				$id = $this->getIDfromUrl((string) $image->link);
 
 				if ($id !== false)
 				{
@@ -195,29 +196,13 @@ class PlgJoomgalleryFinder extends JPlugin
 	 */
 	protected function getIDfromUrl($url)
 	{
-		// split url at the character '?'
-		$vars   = explode('?',strval($url))[1];
-		// split remaining url by the character '&'
-		$vars   = explode('&',$vars);
+		// Create the JUri object 
+    $uri    = Uri::getInstance($url);
 
-		// search for the part containing the id
-		$id_key = false;
-		foreach ($vars as $key => $var)
-		{
-			if (strpos($var, 'id=') !== false)
-			{
-				$id_key = $key;
-			}
-		}
-		if($id_key === false)
-		{
-			// part not found
-			return false;
-		}
+    // Parse the given url
+    $router = Router::getInstance('site');
+    $vars   = $router->parse($uri);
 
-		// extract the id out of the string
-		$id = str_replace('id=','',$vars[$id_key]);
-
-		return intval($id);
+		return intval($vars['id']);
 	}
 }
