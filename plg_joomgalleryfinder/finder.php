@@ -168,7 +168,8 @@ class PlgJoomgalleryFinder extends JPlugin
 				Session::getFormToken() => '1',
 				'return' => Session::getFormToken(),
 				'q' => strval($searchstring),
-				't[]' => strval($taxonomy)
+				't[]' => strval($taxonomy),
+        'limit' => '1000'
 		);
 		$session = Factory::getSession();
 		$url     = Uri::root().'index.php?option=com_finder&view=search&format=feed';
