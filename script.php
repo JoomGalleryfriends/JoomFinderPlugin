@@ -129,15 +129,18 @@ class pkg_joomFinderPluginInstallerScript
       //-----------------------------------------------------------------
       $path1 = JPATH_PLUGINS.DIRECTORY_SEPARATOR."joomgallery".DIRECTORY_SEPARATOR."finder".DIRECTORY_SEPARATOR."finder.xml";
       $path2 = JPATH_PLUGINS.DIRECTORY_SEPARATOR."finder".DIRECTORY_SEPARATOR."joomgallery".DIRECTORY_SEPARATOR."joomgallery.xml";
-      if(File::exists($path1) && File::exists($path2))
+      $path3 = JPATH_PLUGINS.DIRECTORY_SEPARATOR."system".DIRECTORY_SEPARATOR."jgfinder".DIRECTORY_SEPARATOR."jgfinder.xml";
+      if(File::exists($path1) && File::exists($path2) && File::exists($path3))
       {
         $xml1 = simplexml_load_file($path1);
         $xml2 = simplexml_load_file($path2);
+        $xml3 = simplexml_load_file($path3);
 
         $v1 = (string )$xml1->version;
         $v2 = (string )$xml2->version;
+        $v3 = (string )$xml3->version;
 
-        if($v1 != $v2)
+        if($v1 != $v2 || $v1 != $v3)
         {
           Factory::getApplication()->enqueueMessage('Plugins dont have the same version number!','error');
         }
@@ -170,6 +173,7 @@ class pkg_joomFinderPluginInstallerScript
       // check, if plugins are installed and enabled
       $this->enablePlugin('plg_joomgallery_finder','finder','joomgallery');
       $this->enablePlugin('plg_finder_joomgallery','joomgallery','finder');
+      $this->enablePlugin('plg_system_jgfinder','jgfinder','system');
     }
   }
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="3.1" type="plugin" group="system" method="upgrade">
+	<name>plg_system_jgfinder</name>
+	<author>Manuel Häusler</author>
+	<creationDate>March 2022</creationDate>
+	<copyright>(C) 2005 - 2022 Open Source Matters. All rights reserved.</copyright>
+	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+	<authorEmail>tech.spuur@quickline.ch</authorEmail>
+	<authorUrl>https://tech.spuur.ch</authorUrl>
+	<version>0.1.0</version>
+	<description>PLG_SYSTEM_JGFINDER_XML_DESCRIPTION</description>
+	<files>
+		<filename plugin="jgfinder">jgfinder.php</filename>
+	</files>
+	<languages>
+		<language tag="en-GB">language/en-GB/en-GB.plg_system_jgfinder.ini</language>
+		<language tag="en-GB">language/en-GB/en-GB.plg_system_jgfinder.sys.ini</language>
+		<language tag="de-DE">language/de-DE/de-DE.plg_system_jgfinder.ini</language>
+		<language tag="de-DE">language/de-DE/de-DE.plg_system_jgfinder.sys.ini</language>
+	</languages>
+</extension>
