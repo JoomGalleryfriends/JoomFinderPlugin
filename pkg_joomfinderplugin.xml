@@ -8,7 +8,7 @@
     <authorEmail>tech.spuur@quickline.com</authorEmail>
     <authorUrl>https://tech.spuur.ch</authorUrl>
     <packagename>joomfinderplugin</packagename>
-    <version>0.1.0</version>
+    <version>1.0.0</version>
     <description>PKG_JOOMFINDERPLUGIN_XML_DESCRIPTION</description>
 
     <autoactivate>true</autoactivate>

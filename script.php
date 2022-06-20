@@ -1,6 +1,6 @@
 <?php
 /**
- * @version    0.1.0
+ * @version    1.0.0
  * @package    Pkg_JoomFinderPlugin
  * @author     Manuel Häusler <tech.spuur@quickline.com>
  * @copyright  2021 Manuel Häusler
