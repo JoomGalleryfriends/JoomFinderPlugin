@@ -2,12 +2,12 @@
 <extension version="3.1" type="plugin" group="joomgallery" method="upgrade">
 	<name>plg_joomgallery_finder</name>
 	<author>Manuel Häusler</author>
-	<creationDate>June 2021</creationDate>
-	<copyright>(C) 2005 - 2021 Open Source Matters. All rights reserved.</copyright>
+	<creationDate>June 2022</creationDate>
+	<copyright>(C) 2005 - 2022 Open Source Matters. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
 	<authorEmail>tech.spuur@quickline.ch</authorEmail>
 	<authorUrl>https://tech.spuur.ch</authorUrl>
-	<version>1.0.0</version>
+	<version>3.0.0</version>
 	<description>PLG_JOOMGALLERY_FINDER_XML_DESCRIPTION</description>
 	<files>
 		<filename plugin="finder">finder.php</filename>

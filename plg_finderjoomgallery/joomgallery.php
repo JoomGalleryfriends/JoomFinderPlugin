@@ -3,7 +3,7 @@
  * @package     Joomla.Plugin
  * @subpackage  Finder.JoomGallery
  *
- * @copyright   Copyright (C) 2005 - 2021 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2022 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -17,7 +17,7 @@ JLoader::register('FinderIndexerAdapter', JPATH_ADMINISTRATOR . '/components/com
 /**
  * Smart Search adapter for com_joomgallery.
  *
- * @since  2.5
+ * @since  3.0.0
  */
 class PlgFinderJoomgallery extends FinderIndexerAdapter
 {
@@ -25,7 +25,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * The plugin identifier.
 	 *
 	 * @var    string
-	 * @since  2.5
+	 * @since  3.0.0
 	 */
 	protected $context = 'joomgallery';
 
@@ -33,7 +33,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * The extension name.
 	 *
 	 * @var    string
-	 * @since  2.5
+	 * @since  3.0.0
 	 */
 	protected $extension = 'com_joomgallery';
 
@@ -41,7 +41,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * The sublayout to use when rendering the results.
 	 *
 	 * @var    string
-	 * @since  2.5
+	 * @since  3.0.0
 	 */
 	protected $layout = 'joomgallery';
 
@@ -49,7 +49,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * The type of content that the adapter indexes.
 	 *
 	 * @var    string
-	 * @since  2.5
+	 * @since  3.0.0
 	 */
 	protected $type_title = 'Image (JoomGallery)';
 
@@ -57,7 +57,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * The table name.
 	 *
 	 * @var    string
-	 * @since  2.5
+	 * @since  3.0.0
 	 */
 	protected $table = '#__joomgallery';
 
@@ -65,7 +65,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * Load the language file on instantiation.
 	 *
 	 * @var    boolean
-	 * @since  3.1
+	 * @since  3.0.0
 	 */
 	protected $autoloadLanguage = true;
 
@@ -73,7 +73,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * Item type that is currently performed
 	 *
 	 * @var    string
-	 * @since  3.1
+	 * @since  3.0.0
 	 */
 	protected $item_type = 'com_joomgallery.image';
 
@@ -81,7 +81,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * Temporary item state.
 	 *
 	 * @var    array
-	 * @since  3.1
+	 * @since  3.0.0
 	 */
 	protected $tmp_state = array('state'=>null,'access'=>null);
 
@@ -89,7 +89,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 * Temporary storage.
 	 *
 	 * @var    mixed
-	 * @since  3.1
+	 * @since  3.0.0
 	 */
 	protected $tmp = null;
 
@@ -102,7 +102,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  boolean  True on success.
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 * @throws  Exception on database error.
 	 */
 	public function onFinderAfterDelete($context, $table)
@@ -156,7 +156,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  boolean  True on success.
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 * @throws  Exception on database error.
 	 */
 	public function onFinderAfterSave($context, $row, $isNew)
@@ -258,7 +258,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  boolean  True on success.
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 * @throws  Exception on database error.
 	 */
 	public function onFinderBeforeSave($context, $row, $isNew)
@@ -305,7 +305,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  void
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	public function onFinderChangeState($context, $pks, $value)
 	{
@@ -340,7 +340,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  void
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	public function onFinderCategoryChangeState($extension, $pks, $value)
 	{
@@ -364,7 +364,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  void
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 * @throws  Exception on database error.
 	 */
 	protected function index(FinderIndexerResult $item, $format = 'html')
@@ -461,7 +461,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  boolean  True on success.
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	protected function setup()
 	{
@@ -487,7 +487,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  JDatabaseQuery  A database object.
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	protected function getListQuery($query = null)
 	{
@@ -517,7 +517,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  JDatabaseQuery  A database object.
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	protected function getStateQuery()
 	{
@@ -550,7 +550,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  void
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	protected function checkCategoryState($row)
 	{
@@ -581,7 +581,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  void
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	protected function checkItemState($row)
 	{
@@ -611,7 +611,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  integer  The translated indexer state.
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	protected function translateState($value, $category = null)
 	{
@@ -689,7 +689,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  void
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	protected function itemStateChange($pks, $value, $reindex=true)
 	{
@@ -736,7 +736,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  void
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	protected function categoryStateChange($pks, $value, $reindex=true)
 	{
@@ -794,7 +794,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  void
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	protected function itemAccessChange($row, $reindex=true)
 	{
@@ -830,7 +830,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  void
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	protected function categoryAccessChange($row, $reindex=true)
 	{
@@ -877,7 +877,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  JTable  extended item object
 	 *
-	 * @since   1.0
+	 * @since   3.0.0
 	 */
   protected function getParentCatStates($item)
   {
@@ -930,7 +930,7 @@ class PlgFinderJoomgallery extends FinderIndexerAdapter
 	 *
 	 * @return  integer  max access value of any parent category
 	 *
-	 * @since   1.0
+	 * @since   3.0.0
 	 */
   protected function getParentCatAccess($catid)
   {

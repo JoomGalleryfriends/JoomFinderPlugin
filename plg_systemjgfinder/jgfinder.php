@@ -15,7 +15,7 @@ use  Joomla\CMS\Factory;
 /**
  * Smart Search JoomGallery Plugin.
  *
- * @since  2.5
+ * @since  3.0.0
  */
 class PlgSystemJGFinder extends JPlugin
 {

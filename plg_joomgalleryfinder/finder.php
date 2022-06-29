@@ -3,7 +3,7 @@
  * @package     Joomla.Plugin
  * @subpackage  JoomGallery.Finder
  *
- * @copyright   Copyright (C) 2005 - 2021 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2022 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -18,7 +18,7 @@ use  Joomla\CMS\Router\Router;
 /**
  * Smart Search JoomGallery Plugin.
  *
- * @since  2.5
+ * @since  3.0.0
  */
 class PlgJoomgalleryFinder extends JPlugin
 {
@@ -45,7 +45,7 @@ class PlgJoomgalleryFinder extends JPlugin
 	 *
 	 * @return  void
 	 *
-	 * @since   2.5
+	 * @since   3.0.0
 	 */
 	public function onJoomAfterUpload($image)
 	{
@@ -69,7 +69,7 @@ class PlgJoomgalleryFinder extends JPlugin
 	 *
 	 * @return  array   lsit with SQL statements: array('images.select','images.leftjoin','images.where','images.where.or')
 	 *
-	 * @since   3.6.0
+	 * @since   3.0.0
 	 */
 	public function onJoomSearch($searchstring, $aliases, $context = '')
 	{
@@ -143,7 +143,7 @@ class PlgJoomgalleryFinder extends JPlugin
 	 *
 	 * @return  string  The name of the search engine
 	 *
-	 * @since   3.6.0
+	 * @since   3.0.0
 	 */
 	public function onJoomSearchEngineGetName()
 	{
@@ -158,7 +158,7 @@ class PlgJoomgalleryFinder extends JPlugin
 	 *
 	 * @return  array    ('code','response')
 	 *
-	 * @since   3.6.0
+	 * @since   3.0.0
 	 */
 	protected function getSearchResult($taxonomy, $searchstring)
 	{
@@ -193,7 +193,7 @@ class PlgJoomgalleryFinder extends JPlugin
 	 * @param   string    $url   The url string
 	 * @return  integer   id on success, false otherwise
 	 *
-	 * @since   3.6.0
+	 * @since   3.0.0
 	 */
 	protected function getIDfromUrl($url)
 	{
