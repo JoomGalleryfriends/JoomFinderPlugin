@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="package" version="3.0" method="upgrade">
     <name>pkg_joomfinderplugin</name>
-    <creationDate>June 2021</creationDate>
-    <copyright>2021, Manuel Häusler</copyright>
+    <creationDate>June 2022</creationDate>
+    <copyright>2022, Manuel Häusler</copyright>
     <license>GNU General Public License Version 2 oder später; siehe LICENSE.txt</license>
     <author>Manuel Häusler</author>
     <authorEmail>tech.spuur@quickline.com</authorEmail>
     <authorUrl>https://tech.spuur.ch</authorUrl>
     <packagename>joomfinderplugin</packagename>
-    <version>1.0.0</version>
+    <version>3.0.0</version>
     <description>PKG_JOOMFINDERPLUGIN_XML_DESCRIPTION</description>
 
     <autoactivate>true</autoactivate>

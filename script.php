@@ -1,9 +1,9 @@
 <?php
 /**
- * @version    1.0.0
+ * @version    3.0.0
  * @package    Pkg_JoomFinderPlugin
  * @author     Manuel Häusler <tech.spuur@quickline.com>
- * @copyright  2021 Manuel Häusler
+ * @copyright  2022 Manuel Häusler
  * @license    GNU General Public License Version 2 oder später; siehe LICENSE.txt
  */
 
@@ -21,7 +21,7 @@ use \Joomla\CMS\Version;
  * is called by the installer of Joomla!
  *
  * @return  void
- * @since   1.0.0
+ * @since   3.0.0
  */
 class pkg_joomFinderPluginInstallerScript
 {
