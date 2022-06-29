@@ -24,4 +24,8 @@
         <language tag="en-GB">language/en-GB/en-GB.pkg_joomfinderplugin.sys.ini</language>
         <language tag="de-DE">language/de-DE/de-DE.pkg_joomfinderplugin.sys.ini</language>
     </languages>
+
+    <updateservers>
+      <server type="collection" priority="1" name="JoomGallery Update Service">https://www.joomgalleryfriends.net/components/com_newversion/xml/extensions3.xml</server>
+  </updateservers>
 </extension>
